@@ -1,0 +1,36 @@
+#include<iostream>
+#include<string>
+
+class Ticket {
+	std::string concert;
+	int id;
+	static int issued_count;
+
+public:
+	Ticket(const std::string& c) : concert(c), id(++issued_count) {}
+	//Zabrana konstruktora kopiranja
+	Ticket(const Ticket&) = delete;
+	//zabrana dodjele a=b 
+	Ticket& operator=(const Ticket&) = delete;
+
+	int get_id() const { return id; }
+	static int issued() { return issued_count; }
+};
+
+int Ticket::issued_count = 0;
+//Kada maknemo & tada prima ovjekt po vrijednosti a to ne prihvaca
+void print(const Ticket& t) {
+	std::cout << "Ulaznica #" << t.get_id() << '\n';
+}
+
+// void print(Ticket t)  ne prevodi se. prijenos po vrijednosti treba copy konstruktor
+
+int main() {
+	Ticket t1("Rock Concert");
+	Ticket t4("Metal Concert");
+	print(t1);
+	std::cout << "Izdano ulaznica: " << Ticket::issued() << '\n';
+	//t4 = t1;
+	// Ticket t4=t1;   // ne prevodi se. copy konstruktor je obrisan
+	return 0;
+}
