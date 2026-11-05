@@ -23,14 +23,15 @@ void print(const Ticket& t) {
 	std::cout << "Ulaznica #" << t.get_id() << '\n';
 }
 
-// void print(Ticket t)  ne prevodi se. prijenos po vrijednosti treba copy konstruktor
+// void print(Ticket t)  Ne moze prijenos po vrijednosti treba copy konstruktor
 
 int main() {
 	Ticket t1("Rock Concert");
 	Ticket t4("Metal Concert");
 	print(t1);
 	std::cout << "Izdano ulaznica: " << Ticket::issued() << '\n';
-	//t4 = t1;
-	// Ticket t4=t1;   // ne prevodi se. copy konstruktor je obrisan
+
+	//t4 = t1;  Prije promejen sa konstruktorima (delete) kada smo stavili t4=t1 njihov id je bio isti i issued count se ne povecava
+	// Ticket t4=t1;   // Ne moze copy konstruktor je obrisan
 	return 0;
 }
