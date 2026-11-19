@@ -1,0 +1,122 @@
+// Vjezba 8, zadatak 5: napisite klase Account, SavingsAccount i CurrentAccount iznad funkcija.
+//5. Napišite klasu Account za bankovni račun koji ima vlasnika i stanje.Stanje
+//je privatno i mijenja se samo preko protected metode change(amount), koja
+//stanju doda amount.Virtualna metoda za podizanje novca(withdraw) ne uspije
+//ako bi stanje otišlo u minus.Virtualna metoda month_end() poziva se na kraju
+//mjeseca i za običan račun ne radi ništa.Iz klase Account izvedite dvije klase :
+//◦ SavingsAccount(štedni račun) ima kamatnu stopu i na kraju mjeseca doda
+//kamatu;
+//◦ CurrentAccount(tekući račun) dopušta minus do zadane granice.
+//Program za testiranje je account_main.cpp.
+//Funkcije end_by_value i end_by_ref napisane su u programu za testiranje.Zašto end_by_value
+//ne doda kamatu, a end_by_ref doda ?
+
+
+#include <iostream>
+#include <string>
+#include <vector>
+
+class Account {
+private:
+	std::string owner;
+	double balance;
+
+protected:
+	void change(double amount) { balance += amount; }
+	double get_balance() const { return balance; }
+
+public:
+	Account(std::string owner, double balance) : owner(owner), balance(balance) {}
+
+	virtual bool withdraw(double amount) {
+		if (balance - amount < 0) return false;
+		change(-amount);
+		return true;
+	}
+
+	virtual void month_end() {}
+
+	virtual void print() const {
+		std::cout << owner << ": " << balance << std::endl;
+	}
+
+	virtual ~Account() {}
+};
+
+class SavingsAccount : public Account {
+private:
+	double interest_rate;
+
+public:
+	SavingsAccount(std::string owner, double balance, double rate)
+		: Account(owner, balance), interest_rate(rate) {}
+
+
+	void month_end() override {
+		change(get_balance()*interest_rate);
+	}
+};
+
+class CurrentAccount : public Account {
+private:
+	double allowed_minus;
+
+public:
+	CurrentAccount(std::string owner, double balance, double limit)
+		: Account(owner, balance), allowed_minus(limit) {}
+
+	bool withdraw(double amount) override {
+		if (get_balance() - amount < -allowed_minus)
+			return false;
+		change(-amount);
+		return true;
+
+	}
+};
+
+// Ovdje se kreira kopija baznog dijela objekta (object slicing),
+// pa se polimorfizam gubi i poziva se Account::month_end()
+void end_by_value(Account a) {
+	a.month_end();
+}
+
+// Prosljeđuje se referenca na originalni objekt, pa polimorfizam radi
+// i poziva se SavingsAccount::month_end()
+void end_by_ref(Account& a) {
+	a.month_end();
+}
+
+int main() {
+	// SavingsAccount: vlasnik, pocetno stanje, kamatna stopa
+	SavingsAccount ana("Ana", 1000, 0.01);
+
+	// CurrentAccount: vlasnik, pocetno stanje, dopusteni minus
+	CurrentAccount marko("Marko", 100, 500);
+
+	std::vector<Account*> accounts = { &ana, &marko };
+
+	for (Account* a : accounts)
+		std::cout << a->withdraw(300) << ' ';
+	std::cout << '\n';
+
+	for (Account* a : accounts)
+		a->print();
+
+	end_by_value(ana);
+	ana.print();
+
+	end_by_ref(ana);
+	ana.print();
+
+	return 0;
+}
+
+/*
+Ocekivani ispis:
+1 1
+Ana: 700
+Marko: -200
+Ana: 700
+Ana: 707
+*/
+
